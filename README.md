@@ -25,8 +25,8 @@ Note: make sure to replace `<app-dataset>` with an existing data set.
 Add the `/mnt/<app-dataset>/bin` folder to your PATH variable.
 
 As `admin`: `echo "export PATH+=:/mnt/<app-dataset>/bin" >> ~/.zshrc`
-As `root`: `echo "export PATH+=:/mnt/<app-dataset>/bin" >> ~/.bashrc`
 
+As `root`: `echo "export PATH+=:/mnt/<app-dataset>/bin" >> ~/.bashrc`
 
 ## Commands
 

@@ -9,6 +9,7 @@ The `cstmapp` script simplifies the management of custom Docker Compose applicat
 ## Setup
 
 The script can be used by the `admin` or `root` user. 
+
 The installation should be done as `root` user.
 
 THe script must be located on a dataset, otherwise it can not be executed.

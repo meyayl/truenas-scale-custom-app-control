@@ -26,7 +26,7 @@ Add the `/mnt/<app-dataset>/bin` folder to your PATH variable.
 
 Run command as `admin` and/or `root`:
 ```bash
-echo "export PATH=$PATH:/mnt/<app-dataset>/bin" >> ~/.zshrc
+echo 'export PATH=$PATH:/mnt/<app-dataset>/bin' >> ~/.zshrc
 ```
 Changes to the `.zshrc` only apply if the terminal is logged out and in again, or if the file is sourced with `source ~/.zshrc`.
 

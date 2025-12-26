@@ -2,17 +2,30 @@
 
 Convenience wrapper to control custom apps on TrueNAS Scale
 
-## About cstmapp
-
-cstmapp is a Python script that provides an easy way to manage custom applications on TrueNAS Scale systems. It works with Docker Compose files to help you start, stop, and control your custom containerized applications without having to manually manage Docker commands.
-
-## Install
-
-#TODO: describe how to curl the script, 
-
 ## Overview
 
 The `cstmapp` script simplifies the management of custom Docker Compose applications on TrueNAS Scale by providing a command-line interface that wraps TrueNAS Scale's app management API. It automatically detects Docker Compose files in your project directory and handles the deployment, updates, and lifecycle management of your custom applications.
+
+## Setup
+
+The script can be used by the `admin` or `root` user. 
+The installation should be done as `root` user.
+
+THe script must be located on a dataset, otherwise it can not be executed.
+
+```bash
+mkdir /mnt/<app-dataset>/bin
+cd /mnt/<app-dataset>/bin
+wget https://raw.githubusercontent.com/meyayl/truenas-scale-custom-app-control/refs/heads/main/cstmapp
+chmod +x cstmapp
+```
+Note: make sure to replace `<app-dataset>` with an existing data set.
+
+Add the `/mnt/<app-dataset>/bin` folder to your PATH variable.
+
+As `admin`: `echo "export PATH+=:/mnt/<app-dataset>/bin" >> ~/.zshrc`
+As `root`: `echo "export PATH+=:/mnt/<app-dataset>/bin" >> ~/.bashrc`
+
 
 ## Commands
 

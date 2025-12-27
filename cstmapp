@@ -30,11 +30,25 @@ class AppManager:
             print(f"Error parsing JSON response: {e}")
             sys.exit(1)
     
+    def get_app_config(self, app_name):
+        if not self.check_app_exists(app_name):
+            print(f"Error: App '{app_name}' does not exist.")
+            sys.exit(1)
+        proc = subprocess.run([self.midclt_path, "call", "app.config", app_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if proc.returncode != 0:
+            print(f"Error querying apps: {proc.stderr.decode()}")
+            sys.exit(1)
+        try:
+            return json.loads(proc.stdout)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON response: {e}")
+            sys.exit(1)
+
     def check_app_exists(self, app_name):
-        params = f'[["custom_app","=",true],["name","=","{app_name}"]]'
+        params = f'[["name","=","{app_name}"]]'
         result = self.query_apps(params)
         return len(result) > 0
-    
+
     def validate_app_name(self, app_name):
         if not app_name or not isinstance(app_name, str):
             print("Error: App name must be a non-empty string.")
@@ -114,26 +128,44 @@ class CommandHandler:
         self.app_manager = AppManager()
         self.job_executor = JobExecutor()
 
-    def list_apps(self):
-        params = '[["custom_app","=",true]]'
+    def list_apps(self, all):
+        if all:
+            params = '[]'
+        else:
+            params = '[["custom_app","=",true]]'
         app_list = self.app_manager.query_apps(params)
         if len(app_list) > 0:
             print("Deployed Custom Apps:")
+            print("  APP_NAME                                 STATE      APP")
             for app in app_list:
-                print(f'  {app["name"]:40s} {app["state"]:7s}')
+                print(f'  {app["name"]:40s} {app["state"]:10s} {app["metadata"]["name"]}')
         else:
             print("No deployed custom apps found.")
 
-    def inspect_app(self, app_name, compact):
-        params = f'[["custom_app","=",true],["name","=","{app_name}"]]'
+    def inspect_app(self, app_name, is_compact, is_yaml):
+        params = f'[["name","=","{app_name}"]]'
         app_details = self.app_manager.query_apps(params)
         if not app_details:
             print(f"Error: App '{app_name}' not found.")
             sys.exit(1)
-        if compact:
+        if is_yaml:
+            print(yaml.dump(app_details[0]))
+        elif is_compact:
             print(json.dumps(app_details[0]))
         else:
             print(json.dumps(app_details[0], indent=4))
+
+    def config_app(self, app_name,is_compact, is_yaml):
+        app_config = self.app_manager.get_app_config(app_name)
+        if not app_config:
+            print(f"Error: App '{app_name}' not found.")
+            sys.exit(1)
+        if is_yaml:
+            print(yaml.dump(app_config))
+        elif is_compact:
+            print(json.dumps(app_config))
+        else:
+            print(json.dumps(app_config, indent=4))
 
     def create_app(self, app_name, file_path):
         self.app_manager.validate_app_name(app_name)
@@ -208,36 +240,45 @@ class ArgumentParser:
         redeploy_parser = subparsers.add_parser('redeploy', help='Redeploy an app')
         redeploy_parser.add_argument('app_name', nargs='?', help='Name of the app (defaults to current directory name)')
 
-        subparsers.add_parser('list', help='List all deployed custom apps')
+        list_parser = subparsers.add_parser('list', help='List all deployed custom apps')
+        list_parser.add_argument('--all', '-a', action='store_true', help='List all apps including non-custom apps')
 
         inspect_parser = subparsers.add_parser('inspect', help='Inspect custom app')
         inspect_parser.add_argument('--compact', '-c', action='store_true', help='Compact json output')
+        inspect_parser.add_argument('--yaml', action='store_true', help='Yaml output')
         inspect_parser.add_argument('app_name', nargs='?', help='Name of the app (defaults to current directory name)')
+
+        config_parser = subparsers.add_parser('config', help='Get configuration of an app')
+        config_parser.add_argument('--compact', '-c', action='store_true', help='Compact json output')
+        config_parser.add_argument('--yaml', action='store_true', help='Yaml output')
+        config_parser.add_argument('app_name', nargs='?', help='Name of the app (defaults to current directory name)')
 
         compose_parser = subparsers.add_parser('compose', help='Delegate command to `docker compose`')
         compose_parser.add_argument('--file', '-f', help='Docker compose file')
         compose_parser.add_argument('--app_name', help='Name of the app (defaults to current directory name)')
 
         args, unknown_args = parser.parse_known_args()
-        
+
         if not args.command:
             parser.print_help()
             exit(0)
-        
+
         return args, unknown_args
 
 def main():
     args, unknown_args = ArgumentParser.configure_argparser()
     handler = CommandHandler()
-    
+
     # Use current directory name if app_name not provided
     if hasattr(args, 'app_name') and not args.app_name:
         args.app_name = os.path.basename(os.getcwd())
-    
+
     if args.command == 'list':
-        handler.list_apps()
+        handler.list_apps(args.all)
     elif args.command == 'inspect':
-        handler.inspect_app(args.app_name, args.compact)
+        handler.inspect_app(args.app_name, args.compact, args.yaml)
+    elif args.command == 'config':
+        handler.config_app(args.app_name, args.compact, args.yaml)
     elif args.command == 'create':
         handler.create_app(args.app_name, args.file)
     elif args.command == 'update':

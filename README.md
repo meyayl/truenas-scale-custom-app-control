@@ -12,7 +12,7 @@ The script can be used by the `admin` or `root` user.
 
 The installation should be done as `root` user.
 
-THe script must be located on a dataset, otherwise it can not be executed.
+The script must be located on a dataset, otherwise it cannot be executed succesfully.
 
 ```bash
 mkdir /mnt/<app-dataset>/bin
@@ -33,25 +33,37 @@ Changes to the `.zshrc` only apply if the terminal is logged out and in again, o
 ## Commands
 
 ### App Lifecycle Management
-- `create <app_name>` - Create a new app from a Docker Compose file
-- `update <app_name>` - Update an existing app with changes from the Compose file
-- `up <app_name>` - Create a new app or update existing (smart deploy)
-- `delete <app_name>` - Delete an app completely
-- `down <app_name>` - Alias for delete
+- `create [app_name]` - Create a new app from a Docker Compose file
+- `update [app_name]` - Update an existing app with changes from the Compose file
+- `up [app_name]` - Create a new app or update existing (smart deploy)
+- `delete [app_name]` - Delete an app completely
+- `down [app_name]` - Alias for delete
 
 ### App Control
-- `start <app_name>` - Start a stopped app
-- `stop <app_name>` - Stop a running app
-- `restart <app_name>` - Restart an app
-- `redeploy <app_name>` - Redeploy an app after re-pulling the image tag
+- `start [app_name]` - Start a stopped app
+- `stop [app_name]` - Stop a running app
+- `restart [app_name]` - Restart an app (stops then starts)
+- `redeploy [app_name]` - Redeploy an app after re-pulling the image tag
 
 ### Information & Debugging
 - `list` - List all deployed custom apps with their status
-- `inspect <app_name>` - Expose detailed information about an app in JSON (use `--compact` for compact output)
-- `compose --app_name <app_name> [args]` - Run docker compose commands directly on the app
+  - `--all/-a` - Include all apps (not just custom apps)
+- `inspect [app_name]` - Show detailed app information in JSON format
+  - `--compact/-c` - Compact JSON output
+  - `--yaml` - YAML output format
+- `config [app_name]` - Get app configuration
+  - `--compact/-c` - Compact JSON output
+  - `--yaml` - YAML output format
+- `compose [args]` - Run docker compose commands directly on the app
+  - `--app_name <name>` - Specify app name
+  - `--file/-f <compose_file>` - Specify compose file
 
-### Options
+### Global Options
 - `--file/-f <compose_file>` - Specify a Docker Compose file (auto-detects if not provided)
-- `<app_name>` - App name (defaults to current directory name if not specified)
+- `[app_name]` - App name (defaults to current directory name if not specified)
 
-The script automatically finds Docker Compose files (compose.yml, docker-compose.yml, etc.) and validates app names according to TrueNAS Scale requirements.
+### Features
+- Automatic Docker Compose file detection (compose.yml, compose.yaml, docker-compose.yml, docker-compose.yaml)
+- App name validation according to TrueNAS Scale requirements (1-40 chars, lowercase, alphanumeric + hyphens)
+- Real-time progress reporting for long-running operations
+- Smart deployment with `up` command (creates or updates as needed)
